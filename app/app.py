@@ -5,21 +5,25 @@ import json
 
 app = Flask(__name__)
 
+def merge_dicts(*dict_args):
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 @app.route('/<stream_name>', methods=['GET', 'POST'])
 def show_stream(stream_name):
-    if request.method == 'POST':
-        pass
-    else:
-        return json.dumps({'stream_name': stream_name})
-    return render_template('stream.html', stream_name=stream_name)
+    slug = merge_dicts(request.view_args, {'args': request.args})
+    return json.dumps(slug)
 
 @app.route('/<stream_name>/<int:drop_id>')
 def show_post(stream_name, drop_id):
-    return json.dumps({'stream_name': stream_name, 'drop_id': drop_id})
+    slug = merge_dicts(request.view_args, {'args': request.args})
+    return json.dumps(slug)
 
 if __name__ == "__main__":
     app.debug = True # rm in prod
