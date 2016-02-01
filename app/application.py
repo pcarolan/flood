@@ -1,6 +1,7 @@
 from flask import Flask
 from flask import render_template
 from flask import request
+from flask import jsonify
 import json
 import boto3
 import datetime
@@ -13,19 +14,19 @@ application.config.from_object('config')
 
 @application.route('/')
 def index():
-    return render_template('index.html')
+    return jsonify({'site_message': 'Welcome to flood.'})
 
 @application.route('/<stream_name>', methods=['GET', 'POST'])
 def show_stream(stream_name):
     data = get_request_data()
     save('Drops', data)
     response = get_posts('Drops', data['base_url'])
-    return json.dumps(response)
+    return jsonify(**response)
 
 @application.route('/<stream_name>/<drop_id>')
 def show_post(stream_name, drop_id):
     data = get_request_data()
-    return json.dumps(data)
+    return jsonify(data)
 
 def merge_dicts(*dict_args):
     result = {}
@@ -52,12 +53,6 @@ def get_request_data():
         request.view_args,
         {'args': request.args}
     )
-
-class DecimalEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            return str(o)
-        return super(DecimalEncoder, self).default(o)
 
 if __name__ == "__main__":
     application.run()
