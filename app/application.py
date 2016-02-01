@@ -4,6 +4,7 @@ from flask import request
 import json
 import boto3
 import datetime
+import uuid
 
 application = Flask(__name__)
 application.config.from_object('config')
@@ -14,13 +15,17 @@ def merge_dicts(*dict_args):
         result.update(dictionary)
     return result
 
-def put_data(table, blob):
+def save(table, data):
     dynamodb = boto3.resource('dynamodb',endpoint_url="http://localhost:8000")
     table = dynamodb.Table(table)
-    table.put_item(
-        Item={
-           'drop_id': str(datetime.datetime.now())
-        }
+    table.put_item(Item=data)
+
+def get_request_data():
+    return merge_dicts (
+        {'base_url': request.base_url},
+        {'uuid': str(uuid.uuid1())},
+        request.view_args,
+        {'args': request.args}
     )
 
 @application.route('/')
@@ -29,15 +34,15 @@ def index():
 
 @application.route('/<stream_name>', methods=['GET', 'POST'])
 def show_stream(stream_name):
-    slug = merge_dicts(request.view_args, {'args': request.args})
-    put_data('Drops', slug)
-    return json.dumps(slug)
+    data = get_request_data()
+    save('Drops', data)
+    return json.dumps(data)
 
 @application.route('/<stream_name>/<drop_id>')
 def show_post(stream_name, drop_id):
-    slug = merge_dicts(request.view_args, {'args': request.args})
-    put_data(slug)
-    return json.dumps('Drops', slug)
+    data = get_request_data()
+    save('Drops', data)
+    return json.dumps(data)
 
 if __name__ == "__main__":
     application.run()

@@ -15,13 +15,21 @@ def create_drop_table():
         TableName='Drops',
         KeySchema=[
             {
-                'AttributeName': 'drop_id',
+                'AttributeName': 'uuid',
                 'KeyType': 'HASH'  #Partition key
+            },
+            {
+                'AttributeName': 'base_url',
+                'KeyType': 'RANGE'  #Partition key
             }
         ],
         AttributeDefinitions=[
             {
-                'AttributeName': 'drop_id',
+                'AttributeName': 'uuid',
+                'AttributeType': 'S'
+            },
+            {
+                'AttributeName': 'base_url',
                 'AttributeType': 'S'
             }
         ],
